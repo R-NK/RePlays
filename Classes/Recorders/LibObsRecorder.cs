@@ -438,6 +438,7 @@ namespace RePlays.Recorders {
             // TODO: isolate game audio and discord app audio
             // TODO: have user adjustable audio tracks, especially if the user is trying to use more than 6 tracks (6 is the limit)
             //       as of now, if the audio sources exceed 6 tracks, then those tracks will be defaulted to track 6 (index = 5)
+            ValidateAudioDevices();
             foreach (var outputDevice in captureSettings.outputDevices) {
                 CreateAudioDeviceSource(outputDevice);
             }
