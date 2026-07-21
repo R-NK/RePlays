@@ -84,8 +84,11 @@
     <None Remove="ClientApp\build\**" />
     <Compile Remove="ClientApp\build\**" />
     <Compile Remove="obs-studio-build\**" />
+    <Compile Remove="RePlays.Tests\**" />
     <EmbeddedResource Remove="ClientApp\build\**" />
     <EmbeddedResource Remove="obs-studio-build\**" />
+    <EmbeddedResource Remove="RePlays.Tests\**" />
+    <None Remove="RePlays.Tests\**" />
   </ItemGroup>
   
   <ItemGroup>

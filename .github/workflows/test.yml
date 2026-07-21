@@ -1,0 +1,27 @@
+name: Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-2022
+    name: Run Tests
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "true"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.403
+
+      # The Debug configuration requires libobs build artifacts, so run tests in Release
+      - name: Run tests
+        run: dotnet test RePlays.Tests/RePlays.Tests.csproj -c Release
