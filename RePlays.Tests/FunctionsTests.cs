@@ -46,6 +46,8 @@ namespace RePlays.Tests {
         [Theory]
         [InlineData(1920, 1080)]
         [InlineData(5120, 1440)]
+        [InlineData(1280, 800)]
+        [InlineData(2520, 1080)]
         public void IsValidAspectRatio_ReturnsTrue_ForSupportedRatios(int width, int height) {
             Assert.True(Functions.IsValidAspectRatio(width, height));
         }
@@ -53,8 +55,6 @@ namespace RePlays.Tests {
         [Theory]
         [InlineData(1000, 1000)]
         [InlineData(1080, 1920)]
-        // 16:10 is reduced to "8:5", so it never matches "16:10" in the valid list
-        [InlineData(1280, 800)]
         public void IsValidAspectRatio_ReturnsFalse_ForUnsupportedRatios(int width, int height) {
             Assert.False(Functions.IsValidAspectRatio(width, height));
         }
