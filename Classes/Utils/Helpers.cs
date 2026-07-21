@@ -212,6 +212,34 @@ namespace RePlays.Utils {
             SettingsService.SaveSettings();
         }
 
+        public static void ValidateAudioDevices() {
+            GetAudioDevices();
+            bool changed = RemapStaleAudioDevices(SettingsService.Settings.captureSettings.inputDevices, SettingsService.Settings.captureSettings.inputDevicesCache);
+            changed |= RemapStaleAudioDevices(SettingsService.Settings.captureSettings.outputDevices, SettingsService.Settings.captureSettings.outputDevicesCache);
+            if (changed) SettingsService.SaveSettings();
+        }
+
+        // Windows may assign a new endpoint id (GUID) to the same device when it is
+        // re-plugged, leaving the persisted deviceId pointing to a no-longer-existing
+        // endpoint. Fall back to matching by device label to follow the new id.
+        public static bool RemapStaleAudioDevices(List<AudioDevice> devices, List<AudioDevice> devicesCache) {
+            bool changed = false;
+            foreach (var device in devices) {
+                if (devicesCache.Any(d => d.deviceId == device.deviceId)) continue;
+
+                var match = devicesCache.FirstOrDefault(d => d.deviceLabel == device.deviceLabel);
+                if (match != null) {
+                    Logger.WriteLine($"Audio device id for '{device.deviceLabel}' is stale, remapping: {device.deviceId} -> {match.deviceId}");
+                    device.deviceId = match.deviceId;
+                    changed = true;
+                }
+                else {
+                    Logger.WriteLine($"Audio device '{device.deviceLabel}' ({device.deviceId}) is not currently present");
+                }
+            }
+            return changed;
+        }
+
         public static string GetUserSettings() {
             SettingsService.LoadSettings();
 
