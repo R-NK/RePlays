@@ -222,7 +222,7 @@ namespace RePlays.Utils {
         // Windows may assign a new endpoint id (GUID) to the same device when it is
         // re-plugged, leaving the persisted deviceId pointing to a no-longer-existing
         // endpoint. Fall back to matching by device label to follow the new id.
-        private static bool RemapStaleAudioDevices(List<AudioDevice> devices, List<AudioDevice> devicesCache) {
+        public static bool RemapStaleAudioDevices(List<AudioDevice> devices, List<AudioDevice> devicesCache) {
             bool changed = false;
             foreach (var device in devices) {
                 if (devicesCache.Any(d => d.deviceId == device.deviceId)) continue;
