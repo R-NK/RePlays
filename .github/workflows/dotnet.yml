@@ -106,7 +106,18 @@ jobs:
           # eg: out-file-path: "my-downloads" => It will create directory $GITHUB_WORKSPACE/my-downloads
           out-file-path: "bin/Deployment/Releases"
 
+      # RePlays.csproj only consumes build/rundir/Release/bin/64bit, into which
+      # build-libobs.cmd copies all deps, plugins and data, so caching that
+      # directory alone is enough to skip the entire OBS build
+      - name: Cache LibObs build
+        id: cache-libobs
+        uses: actions/cache@v4
+        with:
+          path: obs-studio-build/obs-studio-*/build/rundir/Release/bin/64bit
+          key: libobs-${{ runner.os }}-${{ hashFiles('build-libobs.cmd') }}
+
       - name: Build LibObs
+        if: steps.cache-libobs.outputs.cache-hit != 'true'
         run: .\\build-libobs.cmd
         shell: cmd
 
