@@ -54,12 +54,20 @@ jobs:
 
       - name: "Get Previous tag"
         id: previoustag
+        env:
+          # Used when the repository has no tags yet (e.g. a fresh fork)
+          FALLBACK_VERSION: 1.3.0
         run: |
           if [ "${{steps.nightly.outputs.id}}" == "" ]; then
-            echo "tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_OUTPUT
+            tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || true)
           else
-            echo "tag=$(echo ${{steps.nightly.outputs.name}} | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')" >> $GITHUB_OUTPUT
+            tag=$(echo ${{steps.nightly.outputs.name}} | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')
           fi
+          if [ -z "$tag" ]; then
+            echo "No previous tag found, falling back to $FALLBACK_VERSION"
+            tag=$FALLBACK_VERSION
+          fi
+          echo "tag=$tag" >> $GITHUB_OUTPUT
 
       - name: "Get next version"
         id: semvers
@@ -96,6 +104,8 @@ jobs:
 
       - name: Download previous release to create delta
         uses: robinraju/release-downloader@v1.3
+        # No previous release exists on the first run; skip the delta baseline in that case
+        continue-on-error: true
         with:
           token: ${{ secrets.MY_TOKEN }}
           repository: ${{ github.repository }}
@@ -125,10 +135,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete old prerelease deltas
+      - name: Delete old prerelease assets
+        # Assets may not exist on the first run. Each delete runs independently
+        # (pwsh does not stop on a failing native command), so a missing delta
+        # does not prevent cleaning up the remaining assets.
+        continue-on-error: true
         run: |
-          gh release delete-asset "nightly" "RePlays-${{needs.prep.outputs.oldversion}}-full.nupkg" &&
+          gh release delete-asset "nightly" "RePlays-${{needs.prep.outputs.oldversion}}-full.nupkg"
           gh release delete-asset "nightly" "RePlays-${{needs.prep.outputs.oldversion}}-delta.nupkg"
+          gh release delete-asset "nightly" "RePlaysSetup-${{needs.prep.outputs.oldversion}}.exe"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
