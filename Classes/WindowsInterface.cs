@@ -35,6 +35,7 @@ namespace RePlays {
         public WindowsInterface() {
             Instance = this;
             InitializeComponent();
+            loaderImage = pictureBox1.Image;
             notifyIcon1.Icon = this.Icon;
 
             // INIT RECORDER API
@@ -61,6 +62,7 @@ namespace RePlays {
             recentLinksMenu.Items.Add("Left click to copy to clipboard. Right click to open URL.").Enabled = false;
 
             if (SettingsService.Settings.generalSettings.startMinimized) {
+                StopLoaderAnimation();
                 this.Size = new Size(1080, 600);
                 this._PreviousSize = this.Size;
                 CenterToScreen();
@@ -81,6 +83,19 @@ namespace RePlays {
             pictureBox1.Location = new Point((this.Size.Width / 2) - (pictureBox1.Size.Width / 2),
                                             (this.Size.Height / 2) - (pictureBox1.Size.Height / 2));
             pictureBox1.Refresh();
+        }
+
+        private readonly Image loaderImage;
+
+        // The loading gif must not be animating while the form handle gets recreated
+        // (e.g. toggling ShowInTaskbar): ImageAnimator's worker thread and the UI thread
+        // lock the PictureBox and the animator in opposite order, deadlocking the UI thread.
+        private void StartLoaderAnimation() {
+            if (pictureBox1.Image == null) pictureBox1.Image = loaderImage;
+        }
+
+        private void StopLoaderAnimation() {
+            pictureBox1.Image = null;
         }
 
         bool firstLaunch = true;
@@ -155,6 +170,7 @@ namespace RePlays {
             if (!this.Controls.Contains(webView2) && webMessage.message == "Initialize") {
                 this.Controls.Add(webView2);
                 webView2.BringToFront();
+                StopLoaderAnimation();
                 if (firstTime) {
                     this.Size = new Size(1080, 600);
                     this._PreviousSize = this.Size;
@@ -173,6 +189,7 @@ namespace RePlays {
             if (SettingsService.Settings.generalSettings.closeToTray) {
                 e.Cancel = true;
             }
+            StopLoaderAnimation();
             this.WindowState = FormWindowState.Minimized;
             this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
             this.Opacity = 0;
@@ -190,6 +207,7 @@ namespace RePlays {
             if (this.WindowState != FormWindowState.Minimized) {
                 if (!firstTime) InitializeWebView2();
                 this.ShowInTaskbar = true;
+                StartLoaderAnimation();
                 _PreviousWindowState = WindowState;
                 _PreviousSize = Size;
             }
