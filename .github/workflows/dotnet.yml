@@ -135,12 +135,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete old prerelease deltas
-        # Assets may not exist on the first run
+      - name: Delete old prerelease assets
+        # Assets may not exist on the first run. Each delete runs independently
+        # (pwsh does not stop on a failing native command), so a missing delta
+        # does not prevent cleaning up the remaining assets.
         continue-on-error: true
         run: |
-          gh release delete-asset "nightly" "RePlays-${{needs.prep.outputs.oldversion}}-full.nupkg" &&
+          gh release delete-asset "nightly" "RePlays-${{needs.prep.outputs.oldversion}}-full.nupkg"
           gh release delete-asset "nightly" "RePlays-${{needs.prep.outputs.oldversion}}-delta.nupkg"
+          gh release delete-asset "nightly" "RePlaysSetup-${{needs.prep.outputs.oldversion}}.exe"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
